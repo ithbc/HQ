@@ -89,10 +89,15 @@ export default function Sidebar(props) {
         })}
         target="_blank"
       >
+        
         <div className={classes.logoImage}>
           <img src={logo} alt="logo" className={classes.img} />
         </div>
-        {logoText}
+       
+        {/* <div> {logoText}</div> */}
+        <div>Chi cục hải quan cửa khẩu</div>
+        <div>Sân bay quốc tế Tân Sơn Nhất</div>
+
       </a>
     </div>
   );

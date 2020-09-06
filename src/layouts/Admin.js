@@ -17,6 +17,7 @@ import styles from "assets/jss/material-dashboard-react/layouts/adminStyle.js";
 
 import bgImage from "assets/img/sidebar-2.jpg";
 import logo from "assets/img/reactlogo.png";
+import { Typography } from "@material-ui/core";
 
 let ps;
 
@@ -92,11 +93,12 @@ export default function Admin({ ...rest }) {
       window.removeEventListener("resize", resizeFunction);
     };
   }, [mainPanel]);
+
   return (
     <div className={classes.wrapper}>
       <Sidebar
         routes={routes}
-        logoText={"Chi cục Hải Quan"}
+        logoText={"CHI CỤC HẢI QUAN CỬA KHẨU SÂN BAY QUỐC TẾ TÂN SƠN NHẤT"}
         logo="https://haiquanangiang.gov.vn/upload/editor/20121228221254_43880.jpg"
         image={image}
         handleDrawerToggle={handleDrawerToggle}
