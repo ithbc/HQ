@@ -206,8 +206,8 @@ export default function Index() {
             <ExcelFile 
             filename={socai.date}
             element={<Button className={classes.button}><IconButton>
-                <CloudDownloadIcon textRendering="Mẫu Excel" titleAccess="Mẫu Excel" textDecoration="Mẫu Excel" />
-            </IconButton> Mẫu Excel</Button>}>
+                <CloudDownloadIcon textRendering="Kết xuất dữ liệu" titleAccess="Kết xuất dữ liệu" textDecoration="Kết xuất dữ liệu" />
+            </IconButton> Kết xuất dữ liệu</Button>}>
                 <ExcelSheet dataSet={multiDataSet} name="Sổ cái">
                 </ExcelSheet>
                 <ExcelSheet dataSet={multiDataSet2} name="Bảng kê">
