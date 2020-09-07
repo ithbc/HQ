@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactFileReader from 'react-file-reader'
-import { Button, Typography } from '@material-ui/core'
+import { Button, Typography, TablePagination } from '@material-ui/core'
 import IconButton from '@material-ui/core/IconButton';
 import * as XLSX from 'xlsx'
 import ReactExport from "react-export-excel";
@@ -34,7 +34,7 @@ export default function Index() {
             'ID', 'Số chứng từ', 'Số tiền',
         ],
         data: [],
-        exportFile:[]
+        exportFile: []
     })
     const [socai, setSoCai] = React.useState({
         mess: []
@@ -44,7 +44,7 @@ export default function Index() {
         date: '',
         data: [],
         compare: [],
-        exportFile:[]
+        exportFile: []
     })
     const handleFiles = files => {
         var reader = new FileReader();
@@ -82,7 +82,7 @@ export default function Index() {
                                 records.push(`ID:${i[0]} - Số chứng từ ${i[1]} cập nhật dồn số tiền là ${Number(i[17]).toLocaleString()}`)
                                 // datatable.push([i[0], i[1], i[17]])
                                 datatable.push(createData(ID, DocNum, Company, Money))
-                                exportFile.push([ID,DocNum,Company,Money])
+                                exportFile.push([ID, DocNum, Company, Money])
                             }
                         }
                     }
@@ -97,7 +97,7 @@ export default function Index() {
             setTblSoCai({
                 ...tblSoCai,
                 data: datatable,
-                exportFile:exportFile
+                exportFile: exportFile
             })
 
         }
@@ -131,10 +131,13 @@ export default function Index() {
                         if (CompareAndResearchEmp(docnum, money)) {
                             // docnumEmpty.push(`Chứng từ còn thiếu là ${docnum} - số tiền là ${Number(money).toLocaleString()}`)
                             docnumEmpty.push(createData(id, docnum, company, money))
-                            exportFile.push([id,docnum,company,money])
+                            exportFile.push([id, docnum, company, money])
                         }
-                        // if (!!CompareAndResearch(docnum, money))
-                        //     compare.push(CompareAndResearch(docnum, money))
+                        if (!!CompareAndResearch(docnum, money)) {
+                            const value = CompareAndResearch(docnum, money)
+                            console.log(value)
+                            compare.push(value)
+                        }
                         totalmoney += i[10]
                     }
                 }
@@ -144,8 +147,9 @@ export default function Index() {
                 data: docnumEmpty,
                 compare: compare,
                 totalmoney: Number(totalmoney).toLocaleString(),
-                exportFile:exportFile
+                exportFile: exportFile
             })
+            console.log(compare)
         }
 
         reader.readAsBinaryString(files[0])
@@ -164,50 +168,52 @@ export default function Index() {
     const CompareAndResearch = (docnum, money) => {
         if (!socai.data) return 'Chưa nạp sổ cái'
         if (socai.data) {
+            var check = ''
             const reg = new RegExp(`${docnum}`, 'g')
             const findArray = Object.keys(socai.data)
             findArray.map(i => {
                 if (i.match(reg)) {
                     let value = socai.data[i].reduce((a, b) => a + b, 0)
-                    if (value !== money) {
-                        return `Chứng từ cập nhật không chính xác: ${docnum} số tiền lệch ${value}/${money}`
+                    if (value !== Number(money.replace(/\./g, ''))) {
+                        return check = `Chứng từ cập nhật không chính xác: ${docnum} số tiền lệch ${Number(value).toLocaleString()}/${money}`
                     }
                 }
             })
+            return check
         }
     }
     // export excel
     const ExcelFile = ReactExport.ExcelFile;
     const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
     const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
-    
+
     const multiDataSet = [
         {
-            columns:[socai.date],
-            data:[]
+            columns: [socai.date],
+            data: []
         },
         {
-            columns: ['STT','Số chứng từ cập nhật dồn','Tên doanh nghiệp','Số tiền'],
-            data: [ ...tblSoCai.exportFile]
+            columns: ['STT', 'Số chứng từ cập nhật dồn', 'Tên doanh nghiệp', 'Số tiền'],
+            data: [...tblSoCai.exportFile]
         }
     ];
     const multiDataSet2 = [
         {
-            columns:[ketqua.date],
-            data:[]
+            columns: [ketqua.date],
+            data: []
         },
         {
-            columns: ['STT','Số chứng từ chưa cập nhật','Tên doanh nghiệp','Số tiền'],
-            data: [ ...ketqua.exportFile]
+            columns: ['STT', 'Số chứng từ chưa cập nhật', 'Tên doanh nghiệp', 'Số tiền'],
+            data: [...ketqua.exportFile]
         }
     ];
     const exportTemplate = () => {
         return (
-            <ExcelFile 
-            filename={socai.date}
-            element={<Button className={classes.button}><IconButton>
-                <CloudDownloadIcon textRendering="Kết xuất dữ liệu" titleAccess="Kết xuất dữ liệu" textDecoration="Kết xuất dữ liệu" />
-            </IconButton> Kết xuất dữ liệu</Button>}>
+            <ExcelFile
+                filename={socai.date}
+                element={<Button className={classes.button}><IconButton>
+                    <CloudDownloadIcon textRendering="Kết xuất dữ liệu" titleAccess="Kết xuất dữ liệu" textDecoration="Kết xuất dữ liệu" />
+                </IconButton> Kết xuất dữ liệu</Button>}>
                 <ExcelSheet dataSet={multiDataSet} name="Sổ cái">
                 </ExcelSheet>
                 <ExcelSheet dataSet={multiDataSet2} name="Bảng kê">
@@ -215,6 +221,28 @@ export default function Index() {
             </ExcelFile>
         )
     }
+    const [page, setPage] = React.useState(0);
+    const [rowsPerPage, setRowsPerPage] = React.useState(10);
+
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(+event.target.value);
+        setPage(0);
+    };
+    const [page2, setPage2] = React.useState(0);
+    const [rowsPerPage2, setRowsPerPage2] = React.useState(10);
+
+    const handleChangePage2 = (event, newPage2) => {
+        setPage2(newPage2);
+    };
+
+    const handleChangeRowsPerPage2 = (event) => {
+        setRowsPerPage2(+event.target.value);
+        setPage2(0);
+    };
     return (
         <div>
 
@@ -229,7 +257,7 @@ export default function Index() {
                     </ReactFileReader>
                     <Typography variant="h6">{socai.date}</Typography>
                     <TableContainer component={Paper}>
-                       
+
                         <Table className={classes.table} aria-label="simple table">
                             <TableHead>
                                 <TableRow>
@@ -240,7 +268,7 @@ export default function Index() {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {tblSoCai.data.map((row) => (
+                                {tblSoCai.data.slice(page2 * rowsPerPage2, page2 * rowsPerPage2 + rowsPerPage2).map((row) => (
                                     <TableRow key={row.name}>
                                         <TableCell align="left"> {row.ID}</TableCell>
                                         <TableCell align="left">{row.docnum}</TableCell>
@@ -256,6 +284,15 @@ export default function Index() {
                             </TableRow>
                         </Table>
                     </TableContainer>
+                    <TablePagination
+                        rowsPerPageOptions={[10, 25, 100]}
+                        component="div"
+                        count={tblSoCai.data.length}
+                        rowsPerPage={rowsPerPage2}
+                        page={page2}
+                        onChangePage={handleChangePage2}
+                        onChangeRowsPerPage={handleChangeRowsPerPage2}
+                    />
                     {/* {socai.date}
                     {
                     socai.mess.map(i => {
@@ -284,7 +321,7 @@ export default function Index() {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {ketqua.data.map((row) => (
+                                {ketqua.data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
                                     <TableRow key={row.name}>
                                         <TableCell align="left"> {row.ID}</TableCell>
                                         <TableCell align="left">{row.docnum}</TableCell>
@@ -296,17 +333,25 @@ export default function Index() {
                             <TableRow>
                                 <TableCell colSpan="3">Tổng đếm được</TableCell>
                                 <TableCell align="left"> {ketqua.totalmoney ? `${ketqua.totalmoney}` : null} </TableCell>
-
                             </TableRow>
                         </Table>
                     </TableContainer>
+                    <TablePagination
+                        rowsPerPageOptions={[10, 25, 100]}
+                        component="div"
+                        count={ketqua.data.length}
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        onChangePage={handleChangePage}
+                        onChangeRowsPerPage={handleChangeRowsPerPage}
+                    />
                 </GridItem>
             </GridContainer>
             <GridContainer>
                 <GridItem xs={12} xl={12} md={12}>
-                                    {exportTemplate()}
+                    {exportTemplate()}
                 </GridItem>
             </GridContainer>
-            </div>
+        </div>
     )
 }
