@@ -26,6 +26,10 @@ function createData(ID, docnum, company, money,) {
 }
 export default function Index() {
     const classes = useStyles();
+    const [totalCompany,setTotalCompany] = React.useState({
+        socai:{},
+        bangke:{}
+    })
     const [tblBK, setTblBK] = React.useState({
         data: []
     })
@@ -62,6 +66,7 @@ export default function Index() {
             var datatable = []
             var totalmoney = 0
             var exportFile = []
+            var mstCompany = {}
             data.map((i, e) => {
                 if (e == 6) {
                     title = i[2]
@@ -69,16 +74,21 @@ export default function Index() {
                 if (e >= 10) {
                     if (i.length == 19) {
                         if (Number.isInteger(i[0])) {
-
-                            totalmoney += i[17]
+                            const ID = i[0]
+                            const Company = i[9]
+                            const DocNum = i[1]
+                            const Money = i[17]
+                            const mst = Company.match(/(?=[0-9]).*.(?=\])/g) !== null ? Company.match(/(?=[0-9]).*.(?=\])/g).toString() : 'null'
+                            
+                            var curMSTMoney = mstCompany[mst] == undefined ? {...mstCompany[mst],socai:[]} : {... mstCompany[mst]}
+                                curMSTMoney.socai.push(Money)
+                                mstCompany[mst] = curMSTMoney
                             var cur = docnum[i[1]] == undefined ? [] : [...docnum[i[1]]]
                             cur.push(i[17])
                             docnum[i[1]] = cur
+                            totalmoney += i[17]
                             if (i[17] > 20000) {
-                                const ID = i[0]
-                                const Company = i[9]
-                                const DocNum = i[1]
-                                const Money = Number(i[17]).toLocaleString()
+                                
                                 records.push(`ID:${i[0]} - Số chứng từ ${i[1]} cập nhật dồn số tiền là ${Number(i[17]).toLocaleString()}`)
                                 // datatable.push([i[0], i[1], i[17]])
                                 datatable.push(createData(ID, DocNum, Company, Money))
@@ -115,11 +125,12 @@ export default function Index() {
             const ws = wb.Sheets[wsname];
             const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
             var title = ''
-            var records = []
             var totalmoney = 0
             var docnumEmpty = []
             var compare = []
             var exportFile = []
+            var tonglech = 0
+            var mstCompany = {}
             data.map((i, e) => {
                 if (e == 3) title = i[0]
                 if (e >= 9) {
@@ -127,15 +138,18 @@ export default function Index() {
                         const id = i[0]
                         const docnum = i[2]
                         const company = i[5]
-                        const money = Number(i[10]).toLocaleString()
+                        const mst = company.match(/(?=[0-9]).*.(?=\])/g) !== null ?  company.match(/(?=[0-9]).*.(?=\])/g).toString() : 'null'
+                        const money = i[10]
+                        var curMSTMoney = mstCompany[mst] == undefined ? {...mstCompany[mst],bangke:[]} : {... mstCompany[mst]}
+                        curMSTMoney.bangke.push(money)
+                        mstCompany[mst] = curMSTMoney
                         if (CompareAndResearchEmp(docnum, money)) {
-                            // docnumEmpty.push(`Chứng từ còn thiếu là ${docnum} - số tiền là ${Number(money).toLocaleString()}`)
                             docnumEmpty.push(createData(id, docnum, company, money))
+                            tonglech += money
                             exportFile.push([id, docnum, company, money])
                         }
                         if (!!CompareAndResearch(docnum, money)) {
                             const value = CompareAndResearch(docnum, money)
-                            console.log(value)
                             compare.push(value)
                         }
                         totalmoney += i[10]
@@ -147,15 +161,23 @@ export default function Index() {
                 data: docnumEmpty,
                 compare: compare,
                 totalmoney: Number(totalmoney).toLocaleString(),
-                exportFile: exportFile
+                exportFile: exportFile,
+                tonglech:tonglech
             })
-            console.log(compare)
+            console.log(mstCompany)
+            // var dataExport = []
+            // for(var i in mstCompany) {
+            //   dataExport.push([i,mstCompany[i].reduce((a, b) => a + b, 0)])
+            // }
+            // setTotalCompany({
+            //     ...totalCompany,
+            //     bangke:dataExport
+            // })
         }
 
         reader.readAsBinaryString(files[0])
     }
     const CompareAndResearchEmp = (docnum, money) => {
-        var totMoney = 0
         if (!socai.data) { return 'Chưa nạp sổ cái' }
         if (socai.data) {
             const reg = new RegExp(`${docnum}`, 'g')
@@ -174,8 +196,8 @@ export default function Index() {
             findArray.map(i => {
                 if (i.match(reg)) {
                     let value = socai.data[i].reduce((a, b) => a + b, 0)
-                    if (value !== Number(money.replace(/\./g, ''))) {
-                        return check = `Chứng từ cập nhật không chính xác: ${docnum} số tiền lệch ${Number(value).toLocaleString()}/${money}`
+                    if (value !== money) {
+                        return check = `Chứng từ cập nhật không chính xác: ${docnum} số tiền lệch - Sổ cái: ${Number(value).toLocaleString()}/ Bảng kê: ${Number(money).toLocaleString()}`
                     }
                 }
             })
@@ -207,6 +229,16 @@ export default function Index() {
             data: [...ketqua.exportFile]
         }
     ];
+    const multiDataSet3= [
+        {
+            columns: [ketqua.date],
+            data: []
+        },
+        {
+            columns: ['Mã số thuế', 'Bảng kê', 'Sổ cái'],
+            data: totalCompany.data
+        }
+    ];
     const exportTemplate = () => {
         return (
             <ExcelFile
@@ -217,6 +249,8 @@ export default function Index() {
                 <ExcelSheet dataSet={multiDataSet} name="Sổ cái">
                 </ExcelSheet>
                 <ExcelSheet dataSet={multiDataSet2} name="Bảng kê">
+                </ExcelSheet>
+                <ExcelSheet dataSet={multiDataSet3} name="Tổng tiền theo doanh nghiệp">
                 </ExcelSheet>
             </ExcelFile>
         )
@@ -273,7 +307,7 @@ export default function Index() {
                                         <TableCell align="left"> {row.ID}</TableCell>
                                         <TableCell align="left">{row.docnum}</TableCell>
                                         <TableCell align="left">{row.company}</TableCell>
-                                        <TableCell align="left">{row.money}</TableCell>
+                                        <TableCell align="left">{Number(row.money).toLocaleString()}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -326,10 +360,14 @@ export default function Index() {
                                         <TableCell align="left"> {row.ID}</TableCell>
                                         <TableCell align="left">{row.docnum}</TableCell>
                                         <TableCell align="left">{row.company}</TableCell>
-                                        <TableCell align="left">{row.money}</TableCell>
+                                        <TableCell align="left">{Number(row.money).toLocaleString()}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
+                            <TableRow>
+                                <TableCell colSpan="3">Tổng lệch chưa cập nhật</TableCell>
+                                <TableCell align="left"> {ketqua.tonglech ? `${Number(ketqua.tonglech).toLocaleString()}` : null} </TableCell>
+                            </TableRow>
                             <TableRow>
                                 <TableCell colSpan="3">Tổng đếm được</TableCell>
                                 <TableCell align="left"> {ketqua.totalmoney ? `${ketqua.totalmoney}` : null} </TableCell>
@@ -345,6 +383,15 @@ export default function Index() {
                         onChangePage={handleChangePage}
                         onChangeRowsPerPage={handleChangeRowsPerPage}
                     />
+                </GridItem>
+                <GridItem xs={12} md={12} xl={12}>
+                    {
+                        ketqua.compare.map(i => {
+                            return(
+                            <Typography variant="h6" color="error">{i}</Typography>
+                            )
+                        })
+                    }
                 </GridItem>
             </GridContainer>
             <GridContainer>
