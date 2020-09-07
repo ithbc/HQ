@@ -36,13 +36,20 @@ import UpgradeToPro from "views/UpgradeToPro/UpgradeToPro.js";
 // core components/views for RTL layout
 import RTLPage from "views/RTLPage/RTLPage.js";
 import BKHQ from 'views/BKHQ/Index.js'
+import PayGate from 'views/PayGate/Index.js'
 const dashboardRoutes = [
   {
     path: "/dashboard",
-    name: "Xử lý chứng từ",
-    rtlName: "لوحة القيادة",
+    name: "Xử lý chứng từ Lệ phí",
     icon: Dashboard,
     component: BKHQ,
+    layout: "/admin"
+  },
+  {
+    path: "/pay-gate-ao",
+    name: "Xử lý chứng từ Paygate ảo",
+    icon: "content_paste",
+    component: PayGate,
     layout: "/admin"
   },
   // {
