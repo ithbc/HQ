@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactFileReader from 'react-file-reader'
-import { Button, Typography, TablePagination } from '@material-ui/core'
+import { Button, Typography, TablePagination, ListItem, List, ListItemText } from '@material-ui/core'
 import IconButton from '@material-ui/core/IconButton';
 import * as XLSX from 'xlsx'
 import ReactExport from "react-export-excel";
@@ -16,22 +16,44 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import Card from "components/Card/Card.js";
+import CardBody from "components/Card/CardBody.js";
+import CardHeader from "components/Card/CardHeader.js";
+import CardIcon from "components/Card/CardIcon.js";
+import ArrowRightIcon from '@material-ui/icons/ArrowRight';
+import FolderIcon from '@material-ui/icons/Folder';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
 const useStyles = makeStyles({
     table: {
         minWidth: 650,
     },
+    cardTitle: {
+        marginTop: "0",
+        minHeight: "auto",
+        fontWeight: "300",
+        fontFamily: "'Roboto', 'Helvetica', 'Arial', sans-serif",
+        marginBottom: "3px",
+        textDecoration: "none"
+    },
+    button: {
+
+    }
 });
 function createData(ID, docnum, company, money,) {
     return { ID, docnum, company, money };
 }
 export default function Index() {
     const classes = useStyles();
-    const [totalCompany,setTotalCompany] = React.useState({
-        socai:{},
-        bangke:{}
+    const [totalCompany, setTotalCompany] = React.useState({
+        data:[]
     })
-    const [tblBK, setTblBK] = React.useState({
-        data: []
+    const [dataBangKe, setDataBangKe] = React.useState({
+        data: [],
+        docnum:[]
+    })
+    const [dataSoCai,setDataSoCai] = React.useState({
+        docnum:[],
+        data:[]
     })
     const [tblSoCai, setTblSoCai] = React.useState({
         column: [
@@ -67,6 +89,8 @@ export default function Index() {
             var totalmoney = 0
             var exportFile = []
             var mstCompany = {}
+            var CTSC = []
+            var SoCai = []
             data.map((i, e) => {
                 if (e == 6) {
                     title = i[2]
@@ -79,18 +103,17 @@ export default function Index() {
                             const DocNum = i[1]
                             const Money = i[17]
                             const mst = Company.match(/(?=[0-9]).*.(?=\])/g) !== null ? Company.match(/(?=[0-9]).*.(?=\])/g).toString() : 'null'
-                            
-                            var curMSTMoney = mstCompany[mst] == undefined ? {...mstCompany[mst],socai:[]} : {... mstCompany[mst]}
-                                curMSTMoney.socai.push(Money)
-                                mstCompany[mst] = curMSTMoney
+                            var curMSTMoney = mstCompany[String(`${mst} - ${Company.replace(/\[.*.\]/g,'')}`).trim()] == undefined ? []  : mstCompany[String(`${mst} - ${Company.replace(/\[.*.\]/g,'')}`).trim()] 
+                            curMSTMoney.push(Money)
+                            mstCompany[String(`${mst} - ${Company.replace(/\[.*.\]/g,'')}`).trim()] = curMSTMoney
+                            CTSC.push(DocNum)
+                            SoCai[DocNum] = Money
                             var cur = docnum[i[1]] == undefined ? [] : [...docnum[i[1]]]
                             cur.push(i[17])
                             docnum[i[1]] = cur
                             totalmoney += i[17]
                             if (i[17] > 20000) {
-                                
                                 records.push(`ID:${i[0]} - Số chứng từ ${i[1]} cập nhật dồn số tiền là ${Number(i[17]).toLocaleString()}`)
-                                // datatable.push([i[0], i[1], i[17]])
                                 datatable.push(createData(ID, DocNum, Company, Money))
                                 exportFile.push([ID, DocNum, Company, Money])
                             }
@@ -108,6 +131,18 @@ export default function Index() {
                 ...tblSoCai,
                 data: datatable,
                 exportFile: exportFile
+            })
+            setDataSoCai({
+                data:SoCai,
+                docnum:CTSC
+            })
+            var result = []
+            for(var i in mstCompany){
+                let tongtien = mstCompany[i].reduce((a,b) => a+b,0)
+                result.push([String(i).toUpperCase(),tongtien])
+            }
+            setTotalCompany({
+                data:result
             })
 
         }
@@ -131,6 +166,7 @@ export default function Index() {
             var exportFile = []
             var tonglech = 0
             var mstCompany = {}
+            var CTBK = []
             data.map((i, e) => {
                 if (e == 3) title = i[0]
                 if (e >= 9) {
@@ -138,11 +174,13 @@ export default function Index() {
                         const id = i[0]
                         const docnum = i[2]
                         const company = i[5]
-                        const mst = company.match(/(?=[0-9]).*.(?=\])/g) !== null ?  company.match(/(?=[0-9]).*.(?=\])/g).toString() : 'null'
+                        const mst = company.match(/(?=[0-9]).*.(?=\])/g) !== null ? company.match(/(?=[0-9]).*.(?=\])/g).toString() : 'null'
+                        
                         const money = i[10]
-                        var curMSTMoney = mstCompany[mst] == undefined ? {...mstCompany[mst],bangke:[]} : {... mstCompany[mst]}
-                        curMSTMoney.bangke.push(money)
-                        mstCompany[mst] = curMSTMoney
+                        var curMSTMoney = mstCompany[String(`${mst} - ${company.replace(/\[.*.\- /g,'')}`).trim()] == undefined ? [] : mstCompany[String(`${mst} - ${company.replace(/\[.*.\- /g,'')}`).trim()] 
+                        curMSTMoney.push(money)
+                        mstCompany[String(`${mst} - ${company.replace(/\[.*.\- /g,'')}`).trim()] = curMSTMoney
+                        CTBK.push(String(docnum).trim())
                         if (CompareAndResearchEmp(docnum, money)) {
                             docnumEmpty.push(createData(id, docnum, company, money))
                             tonglech += money
@@ -162,17 +200,30 @@ export default function Index() {
                 compare: compare,
                 totalmoney: Number(totalmoney).toLocaleString(),
                 exportFile: exportFile,
-                tonglech:tonglech
+                tonglech: tonglech,
+                docnumBK:CTBK
             })
-            console.log(mstCompany)
-            // var dataExport = []
-            // for(var i in mstCompany) {
-            //   dataExport.push([i,mstCompany[i].reduce((a, b) => a + b, 0)])
-            // }
-            // setTotalCompany({
-            //     ...totalCompany,
-            //     bangke:dataExport
-            // })
+            var result = totalCompany.data
+            let index = 0;
+            var lastestResult = []
+            for(var i in mstCompany){
+                index++
+                let tongtien = mstCompany[i].reduce((a,b) => a+b,0)
+                lastestResult.push(...result.filter(i2 => {
+                    const reg =  new RegExp(`.*${String(i).toUpperCase().replace(/ \-.*/g,'')}.*`,'g') 
+                    if(String(i2[0]).match(reg) !== null) {
+                        return i2.push(tongtien)
+                    } 
+                }))
+                // var reg = new RegExp(`.*${String(i).toUpperCase().replace(/\-/g,'\-').replace(/[\(|\)]/g,'.*')}.*`,'g')
+                var reg = new RegExp(`.*${String(i).toUpperCase().replace(/ \-.*/g,'')}.*`,'g')
+                if(result.toString().match(reg) == null) {
+                    lastestResult.push([String(i).toUpperCase(),null,tongtien])
+                } 
+            }
+            setTotalCompany({
+                data:lastestResult
+            })
         }
 
         reader.readAsBinaryString(files[0])
@@ -208,7 +259,6 @@ export default function Index() {
     const ExcelFile = ReactExport.ExcelFile;
     const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
     const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
-
     const multiDataSet = [
         {
             columns: [socai.date],
@@ -229,21 +279,21 @@ export default function Index() {
             data: [...ketqua.exportFile]
         }
     ];
-    const multiDataSet3= [
+    const multiDataSet3 = [
         {
             columns: [ketqua.date],
             data: []
         },
         {
             columns: ['Mã số thuế', 'Bảng kê', 'Sổ cái'],
-            data: totalCompany.data
+            data:totalCompany.data
         }
     ];
     const exportTemplate = () => {
         return (
             <ExcelFile
                 filename={socai.date}
-                element={<Button className={classes.button}><IconButton>
+                element={<Button className={classes.button}><IconButton size="small">
                     <CloudDownloadIcon textRendering="Kết xuất dữ liệu" titleAccess="Kết xuất dữ liệu" textDecoration="Kết xuất dữ liệu" />
                 </IconButton> Kết xuất dữ liệu</Button>}>
                 <ExcelSheet dataSet={multiDataSet} name="Sổ cái">
@@ -277,6 +327,37 @@ export default function Index() {
         setRowsPerPage2(+event.target.value);
         setPage2(0);
     };
+    React.useEffect(() => {
+        if(ketqua.data.length > 0) {
+            const unique = (value, index, self) => {
+                return self.indexOf(value) === index
+              }
+            const dataUnique = dataSoCai.docnum.filter(unique)
+            const dataUniqueBK = ketqua.docnumBK.filter(unique)
+            var result = []
+            var money = 0
+            dataUnique.filter(i => {
+                const docnum = i.split('/') ? i.split('/')[0] : null
+                const reg = new RegExp(`${docnum}`,'g')
+                
+                if(dataUniqueBK.toString().match(reg) !== null) {
+                    return 
+                } else {
+                    money += dataSoCai.data[i]
+                    result.push(`Chứng từ tồn tại trong sổ cái nhưng không có trong bảng kê: ${i} - ${Number(dataSoCai.data[i]).toLocaleString()}`)
+                }
+                
+            })
+            result.push(`Tổng tiền lệch Sổ Cái so với Bảng Kê là ${Number(money).toLocaleString()}`)
+            setKetQua({
+                ...ketqua,
+                compare:[
+                    ...ketqua.compare,
+                    ...result
+                ]
+            })
+        }
+    },[ketqua.date])
     return (
         <div>
 
@@ -385,18 +466,36 @@ export default function Index() {
                     />
                 </GridItem>
                 <GridItem xs={12} md={12} xl={12}>
-                    {
-                        ketqua.compare.map(i => {
-                            return(
-                            <Typography variant="h6" color="error">{i}</Typography>
-                            )
-                        })
-                    }
+
                 </GridItem>
             </GridContainer>
             <GridContainer>
                 <GridItem xs={12} xl={12} md={12}>
-                    {exportTemplate()}
+                    <Card>
+                        <CardHeader color="info">
+                            <h4 className={classes.cardTitle}>Thông tin gợi ý cần chỉnh sửa</h4>
+                            {exportTemplate()}
+                        </CardHeader>
+                        <CardBody>
+                            <List dense={true}>
+                                {
+                                    ketqua.compare.map(i => {
+                                        return (
+                                            <ListItem>
+                                            <ListItemIcon>
+                                              <ArrowRightIcon />
+                                            </ListItemIcon>
+                                            <ListItemText
+                                              primary={i}
+                                            />
+                                            </ListItem>
+                                        )
+                                    })
+                                }
+                            </List>
+                        </CardBody>
+                    </Card>
+
                 </GridItem>
             </GridContainer>
         </div>
