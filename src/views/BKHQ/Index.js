@@ -285,7 +285,7 @@ export default function Index() {
             data: []
         },
         {
-            columns: ['Mã số thuế', 'Bảng kê', 'Sổ cái'],
+            columns: ['Mã số thuế', 'Sổ cái', 'Bảng kê' ],
             data:totalCompany.data
         }
     ];
