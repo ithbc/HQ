@@ -100,20 +100,21 @@ export default function Index() {
                         if (Number.isInteger(i[0])) {
                             const ID = i[0]
                             const Company = i[9]
-                            const DocNum = i[1]
+                            const DocNum = String(i[1]).replace('-1','')
                             const Money = i[17]
+                            console.log(Company.match(/(?=[0-9]).*.(?=\])/g) == null ? ID : '')
                             const mst = Company.match(/(?=[0-9]).*.(?=\])/g) !== null ? Company.match(/(?=[0-9]).*.(?=\])/g).toString() : 'null'
                             var curMSTMoney = mstCompany[String(`${mst} - ${Company.replace(/\[.*.\]/g,'')}`).trim()] == undefined ? []  : mstCompany[String(`${mst} - ${Company.replace(/\[.*.\]/g,'')}`).trim()] 
                             curMSTMoney.push(Money)
                             mstCompany[String(`${mst} - ${Company.replace(/\[.*.\]/g,'')}`).trim()] = curMSTMoney
                             CTSC.push(DocNum)
                             SoCai[DocNum] = Money
-                            var cur = docnum[i[1]] == undefined ? [] : [...docnum[i[1]]]
+                            var cur = docnum[DocNum] == undefined ? [] : [...docnum[DocNum]]
                             cur.push(i[17])
-                            docnum[i[1]] = cur
+                            docnum[DocNum] = cur
                             totalmoney += i[17]
                             if (i[17] > 20000) {
-                                records.push(`ID:${i[0]} - Số chứng từ ${i[1]} cập nhật dồn số tiền là ${Number(i[17]).toLocaleString()}`)
+                                records.push(`ID:${i[0]} - Số chứng từ ${DocNum} cập nhật dồn số tiền là ${Number(i[17]).toLocaleString()}`)
                                 datatable.push(createData(ID, DocNum, Company, Money))
                                 exportFile.push([ID, DocNum, Company, Money])
                             }
@@ -144,7 +145,7 @@ export default function Index() {
             setTotalCompany({
                 data:result
             })
-
+            console.log(SoCai)
         }
         // reader.readAsText(files[0]);
         reader.readAsBinaryString(files[0])
@@ -175,7 +176,6 @@ export default function Index() {
                         const docnum = i[2]
                         const company = i[5]
                         const mst = company.match(/(?=[0-9]).*.(?=\])/g) !== null ? company.match(/(?=[0-9]).*.(?=\])/g).toString() : 'null'
-                        
                         const money = i[10]
                         var curMSTMoney = mstCompany[String(`${mst} - ${company.replace(/\[.*.\- /g,'')}`).trim()] == undefined ? [] : mstCompany[String(`${mst} - ${company.replace(/\[.*.\- /g,'')}`).trim()] 
                         curMSTMoney.push(money)
@@ -242,15 +242,24 @@ export default function Index() {
         if (!socai.data) return 'Chưa nạp sổ cái'
         if (socai.data) {
             var check = ''
-            const reg = new RegExp(`${docnum}`, 'g')
+            const reg = new RegExp(`${docnum}=?\/`, 'g')
+            const reg2 = new RegExp(`${docnum}=?\-1`, 'g')
             const findArray = Object.keys(socai.data)
             findArray.map(i => {
                 if (i.match(reg)) {
+                    console.log(socai.data)
                     let value = socai.data[i].reduce((a, b) => a + b, 0)
                     if (value !== money) {
                         return check = `Chứng từ cập nhật không chính xác: ${docnum} số tiền lệch - Sổ cái: ${Number(value).toLocaleString()}/ Bảng kê: ${Number(money).toLocaleString()}`
                     }
                 }
+                // else if(i.match(reg2)) {
+                //     let value = socai.data[i].reduce((a, b) => a + b, 0)
+                //     let value2 = bangke.data
+                //     if (value !== money) {
+                //         return check = `Chứng từ cập nhật không chính xác: ${docnum} số tiền lệch - Sổ cái: ${Number(value).toLocaleString()}/ Bảng kê: ${Number(money).toLocaleString()}`
+                //     }
+                // }
             })
             return check
         }
