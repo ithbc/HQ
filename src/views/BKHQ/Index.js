@@ -91,6 +91,7 @@ export default function Index() {
             var mstCompany = {}
             var CTSC = []
             var SoCai = []
+            var DobluesNull = []
             data.map((i, e) => {
                 if (e == 6) {
                     title = i[2]
@@ -101,12 +102,19 @@ export default function Index() {
                             const ID = i[0]
                             const Company = i[9]
                             const DocNum = String(i[1]).replace('-1','')
+                            const DocNum2 = String(i[1])
                             const Money = i[17]
-                            console.log(Company.match(/(?=[0-9]).*.(?=\])/g) == null ? ID : '')
+                            const Comment = i[11]
+                            // console.log(Comment.match(/(?=[0-9]).*.(?=\])/g) !== null ? Comment : "")
                             const mst = Company.match(/(?=[0-9]).*.(?=\])/g) !== null ? Company.match(/(?=[0-9]).*.(?=\])/g).toString() : 'null'
-                            var curMSTMoney = mstCompany[String(`${mst} - ${Company.replace(/\[.*.\]/g,'')}`).trim()] == undefined ? []  : mstCompany[String(`${mst} - ${Company.replace(/\[.*.\]/g,'')}`).trim()] 
+                            if(Comment.match(/.*(?=[0-9]).*.(?=\])/g) !== null) {
+                                DobluesNull.push(`Các chứng từ chưa bỏ ${DocNum2} - Số tiền: ${Number(Money).toLocaleString()}`)
+                            } else {
+                                var curMSTMoney = mstCompany[String(`${mst} - ${Company.replace(/\[.*.\]/g,'')}`).trim()] == undefined ? []  : mstCompany[String(`${mst} - ${Company.replace(/\[.*.\]/g,'')}`).trim()] 
                             curMSTMoney.push(Money)
-                            mstCompany[String(`${mst} - ${Company.replace(/\[.*.\]/g,'')}`).trim()] = curMSTMoney
+                                mstCompany[String(`${mst} - ${Company.replace(/\[.*.\]/g,'')}`).trim()] = curMSTMoney
+                            }
+                                
                             CTSC.push(DocNum)
                             SoCai[DocNum] = Money
                             var cur = docnum[DocNum] == undefined ? [] : [...docnum[DocNum]]
@@ -136,6 +144,10 @@ export default function Index() {
             setDataSoCai({
                 data:SoCai,
                 docnum:CTSC
+            })
+            setKetQua({
+                ...ketqua,
+                compare:DobluesNull
             })
             var result = []
             for(var i in mstCompany){
@@ -197,7 +209,10 @@ export default function Index() {
             setKetQua({
                 date: title,
                 data: docnumEmpty,
-                compare: compare,
+                compare: [
+                    ...ketqua.compare,
+                    ...compare
+                ],
                 totalmoney: Number(totalmoney).toLocaleString(),
                 exportFile: exportFile,
                 tonglech: tonglech,
