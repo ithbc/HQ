@@ -5,8 +5,8 @@
 # Mục tiêu
 - Project phục vụ cho việc xử lý các chứng từ của Chi cục hải quan cửa khẩu Sân bay quốc tế Tân Sơn Nhất.
 - Project đặt ra các mục tiêu:
-++ Giải quyết được các vấn đề trong việc xử lý dữ liệu thô
-++ Nhỏ gọn, dễ đóng gói và dễ triển khai cài đặt trên một số thiết bị.
+   - Giải quyết được các vấn đề trong việc xử lý dữ liệu thô
+   - Nhỏ gọn, dễ đóng gói và dễ triển khai cài đặt trên một số thiết bị.
 
 # Công nghệ
 - React JS
