@@ -11,13 +11,21 @@
 - React JS
 
 # Hướng dẫn cài đặt
+## Yêu cầu hệ thống
+- Windows/Linux
+- Cài đặt NodeJS (https://nodejs.org/en/)
 ### Tải source code thông qua git
 ``` 
 git clone https://github.com/ithbc/HQ.git 
 ```
-### Cài đặt các gói cần thiết
+### Cài đặt các packages cần thiết
 ```
 cd HQ
 npm install
+
+```
+
+### Chạy chương trình (Sau khi đã cài đặt các packages cần thiết)
+``` 
 npm start
 ```
