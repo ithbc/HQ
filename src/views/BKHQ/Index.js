@@ -72,6 +72,8 @@ export default function Index() {
         compare: [],
         exportFile: []
     })
+    var idSC = dataSoCai.docnum.map(i => i.replace(/(\-1\/.*)|(\/.*)/g, ''))
+    var idBK = []
     const handleFiles = files => {
         var reader = new FileReader();
         reader.onload = function (e) {
@@ -157,7 +159,6 @@ export default function Index() {
             setTotalCompany({
                 data:result
             })
-            console.log(SoCai)
         }
         // reader.readAsText(files[0]);
         reader.readAsBinaryString(files[0])
@@ -202,6 +203,7 @@ export default function Index() {
                             const value = CompareAndResearch(docnum, money)
                             compare.push(value)
                         }
+                        
                         totalmoney += i[10]
                     }
                 }
@@ -230,7 +232,7 @@ export default function Index() {
                         return i2.push(tongtien)
                     } 
                 }))
-                // var reg = new RegExp(`.*${String(i).toUpperCase().replace(/\-/g,'\-').replace(/[\(|\)]/g,'.*')}.*`,'g')
+            
                 var reg = new RegExp(`.*${String(i).toUpperCase().replace(/ \-.*/g,'')}.*`,'g')
                 if(result.toString().match(reg) == null) {
                     lastestResult.push([String(i).toUpperCase(),null,tongtien])
@@ -262,22 +264,24 @@ export default function Index() {
             const findArray = Object.keys(socai.data)
             findArray.map(i => {
                 if (i.match(reg)) {
-                    console.log(socai.data)
                     let value = socai.data[i].reduce((a, b) => a + b, 0)
                     if (value !== money) {
                         return check = `Chứng từ cập nhật không chính xác: ${docnum} số tiền lệch - Sổ cái: ${Number(value).toLocaleString()}/ Bảng kê: ${Number(money).toLocaleString()}`
                     }
                 }
-                // else if(i.match(reg2)) {
-                //     let value = socai.data[i].reduce((a, b) => a + b, 0)
-                //     let value2 = bangke.data
-                //     if (value !== money) {
-                //         return check = `Chứng từ cập nhật không chính xác: ${docnum} số tiền lệch - Sổ cái: ${Number(value).toLocaleString()}/ Bảng kê: ${Number(money).toLocaleString()}`
-                //     }
-                // }
             })
             return check
         }
+    }
+    const SearchNotInBK = (docnum) => {
+        console.log(docnum)
+        if(ketqua.docnumBK.indexOf(docnum) == -1) {
+            console.log(docnum)
+        return true
+        }
+        else {
+            console.log(docnum)
+            return false}
     }
     // export excel
     const ExcelFile = ReactExport.ExcelFile;
@@ -373,6 +377,21 @@ export default function Index() {
                 
             })
             result.push(`Tổng tiền lệch Sổ Cái so với Bảng Kê là ${Number(money).toLocaleString()}`)
+            
+            
+            setKetQua({
+                ...ketqua,
+                compare:[
+                    ...ketqua.compare,
+                    ...result
+                ]
+            })
+        } else {
+            var result = []
+            idSC.map(i => {
+                if(SearchNotInBK(i))
+                result.push(`${i} Không tồn tại trong bảng kê`)
+            })
             setKetQua({
                 ...ketqua,
                 compare:[
