@@ -15,3 +15,9 @@
 ``` 
 git clone https://github.com/ithbc/HQ.git 
 ```
+### Cài đặt các gói cần thiết
+```
+cd HQ
+npm install
+npm start
+```
