@@ -22,7 +22,6 @@ git clone https://github.com/ithbc/HQ.git
 ```
 cd HQ
 npm install
-
 ```
 
 ### Chạy chương trình (Sau khi đã cài đặt các packages cần thiết)
