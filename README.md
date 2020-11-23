@@ -12,4 +12,6 @@
 
 # Hướng dẫn cài đặt
 ## Tải source code thông qua git
-``` git clone https://github.com/ithbc/HQ.git ```
+``` 
+git clone https://github.com/ithbc/HQ.git 
+```
